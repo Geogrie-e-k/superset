@@ -68,7 +68,7 @@ const config: ControlPanelConfig = {
               type: 'SelectControl',
               label: t('Step type'),
               renderTrigger: true,
-              default: EchartsTimeseriesSeriesType.Start,
+              default: EchartsTimeseriesSeriesType.End,
               choices: [
                 [EchartsTimeseriesSeriesType.End, 'End'],
               ],
