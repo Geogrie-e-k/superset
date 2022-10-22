@@ -107,17 +107,38 @@ import { isNumber } from 'lodash';
       queryData as TimeseriesChartDataResponseResult;
 
       console.log(colnames)
-
-      let dictionary = Object.assign({}, ...colnames.map((x: string) => ({
+      
+      let prevValDictionary = Object.assign({}, ...colnames.map((x: string) => ({
       	[x]: null
       })));
-      console.log(dictionary)
+      console.log(prevValDictionary)
+
+      // initialize prevValDictionary with the values of the first row
+      if(data.length > 0){
+        Object.entries(data[0])?.forEach(([key, value]) => {
+          prevValDictionary[key] = value;
+        })
+      }
+
+      // initialize all missing values in prevValDictionary that were null for the first row 
+      // with the inverse value of first occurance of each in the subsequent row.
+      for(let i:number=1; i<data.length-1; i++){
+        Object.entries(data[i])?.forEach(([key, value]) => {
+          if(prevValDictionary[key]=== null && value!== null)
+          prevValDictionary[key] = value === 0 ? 1: 0;
+        })
+        const dictionaryComplete = Object.values(prevValDictionary).every(x => x !== null)
+
+        if(dictionaryComplete)
+         break;
+      }
+
       data.forEach(d => {
       	Object.keys(d).forEach((prop) => {
       			if (d[prop] === null) {
-      				d[prop] = dictionary[prop]
+      				d[prop] = prevValDictionary[prop]
       			} else {
-      				dictionary[prop] = d[prop]
+      				prevValDictionary[prop] = d[prop]
       			}
       		})
       	})
@@ -216,7 +237,7 @@ import { isNumber } from 'lodash';
   const xAxisType = getAxisType(xAxisDataType);
   const series: SeriesOption[] = [];
   const formatter = getNumberFormatter(
-    contributionMode || isAreaExpand ? ',.0%' : yAxisFormat,
+    contributionMode || isAreaExpand ? ',.0%' : "NONE",
   );
 
   rawSeries.forEach(entry => {
@@ -428,11 +449,7 @@ import { isNumber } from 'lodash';
 
         Object.keys(forecastValues).forEach(key => {
           const value = forecastValues[key];
-          const content = formatForecastTooltipSeries({
-            ...value,
-            seriesName: key,
-            formatter,
-          });
+          const content = `${value.marker}${sanitizeHtml(key)}: ${isNumber(value?.observation) ? value?.observation % 2 ? "0":"1" : value?.observation}`;
           if (currentSeries.name === key) {
             rows.push(`<span style="font-weight: 700">${content}</span>`);
           } else {

@@ -40,6 +40,12 @@ export default class NumberFormatterRegistry extends RegistryWithDefaultKey<
       NumberFormats.SMART_NUMBER_SIGNED,
       createSmartNumberFormatter({ signed: true }),
     );
+    this.registerValue(
+      NumberFormats.NONE,
+      new NumberFormatter({formatFunc: value => value !== 0 ? value%2 ? "0": "1" : "",
+        id:NumberFormats.NONE})
+      ,
+    );
     this.setDefaultKey(NumberFormats.SMART_NUMBER);
   }
 
